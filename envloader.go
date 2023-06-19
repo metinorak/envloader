@@ -35,6 +35,49 @@ func (el *envLoader) toSnakeUpperCase(str string) string {
 	return strings.ToUpper(snake)
 }
 
+func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value) error {
+	pairs := strings.Split(envValue, ",")
+
+	mapValue := reflect.MakeMap(fieldValue.Type())
+
+	for _, pair := range pairs {
+		kv := strings.Split(pair, ":")
+		if len(kv) != 2 {
+			return fmt.Errorf("invalid map value: %s", envValue)
+		}
+
+		// set the key and value regarding the value type
+		switch mapValue.Type().Elem().Kind() {
+		case reflect.String:
+			mapValue.SetMapIndex(reflect.ValueOf(kv[0]), reflect.ValueOf(kv[1]))
+		case reflect.Int:
+			intValue, err := strconv.Atoi(kv[1])
+			if err != nil {
+				return err
+			}
+			mapValue.SetMapIndex(reflect.ValueOf(kv[0]), reflect.ValueOf(intValue))
+		case reflect.Float64:
+			floatValue, err := strconv.ParseFloat(kv[1], 64)
+			if err != nil {
+				return err
+			}
+			mapValue.SetMapIndex(reflect.ValueOf(kv[0]), reflect.ValueOf(floatValue))
+		case reflect.Bool:
+			boolValue, err := strconv.ParseBool(kv[1])
+			if err != nil {
+				return err
+			}
+			mapValue.SetMapIndex(reflect.ValueOf(kv[0]), reflect.ValueOf(boolValue))
+		default:
+			return fmt.Errorf("unsupported map value type: %s", mapValue.Type().Elem().Kind())
+		}
+	}
+
+	fieldValue.Set(mapValue)
+
+	return nil
+}
+
 func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 	value := reflect.ValueOf(model).Elem()
 	valueType := value.Type()
@@ -95,6 +138,16 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 				return err
 			}
 			fieldValue.SetBool(boolValue)
+
+		case reflect.Slice:
+			sliceValue := strings.Split(envValue, ",")
+			fieldValue.Set(reflect.ValueOf(sliceValue))
+
+		case reflect.Map:
+			err := el.loadFromEnvToMap(envValue, fieldValue)
+			if err != nil {
+				return err
+			}
 
 		case reflect.Struct:
 			el.loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())

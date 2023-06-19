@@ -225,6 +225,67 @@ func TestLoad(t *testing.T) {
 
 		assert.Equal(t, expected, config)
 	})
+
+	t.Run("TestLoad_WithSlices", func(t *testing.T) {
+		type ConfigModel struct {
+			Proxies []string
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("PROXIES").Return("https://example.com,https://example2.com", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		expected := &ConfigModel{
+			Proxies: []string{"https://example.com", "https://example2.com"},
+		}
+
+		assert.Equal(t, expected, config)
+	})
+
+	t.Run("TestLoad_WithMaps", func(t *testing.T) {
+		type ConfigModel struct {
+			FormulaFactors map[string]float64
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("FORMULA_FACTORS").Return("pi:3.14,e:2.71828", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		expected := &ConfigModel{
+			FormulaFactors: map[string]float64{
+				"pi": 3.14,
+				"e":  2.71828,
+			},
+		}
+
+		assert.Equal(t, expected, config)
+	})
 }
 
 func BenchmarkLoad(b *testing.B) {
