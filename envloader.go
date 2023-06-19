@@ -16,46 +16,15 @@ type EnvLoader interface {
 }
 
 type envLoader struct {
-	options   Options
 	envReader EnvReader
 }
 
-type Options struct {
-	EnvFieldDelimiter string
-}
-
-// DefaultOptions returns the default options
-func DefaultOptions() Options {
-	return Options{
-		EnvFieldDelimiter: ".",
-	}
-}
-
-// OptionFunc defines the signature of an option function
-type OptionFunc func(*Options)
-
-// WithEnvFieldDelimiter sets the delimiter used to separate the struct field names
-func WithEnvFieldDelimiter(value string) OptionFunc {
-	return func(opts *Options) {
-		opts.EnvFieldDelimiter = value
-	}
-}
-
 // New creates a new instance of envLoader with the provided options
-// If no options are provided, the default options are used
-// Default delimiter is "."
-// You can change the delimiter with WithEnvFieldDelimiter option
 // Example:
 //
-//	loader := envloader.New(envloader.WithEnvFieldDelimiter("*"))
-func New(opts ...OptionFunc) EnvLoader {
-	options := DefaultOptions()
-	for _, opt := range opts {
-		opt(&options)
-	}
-
+//	loader := envloader.New()
+func New() EnvLoader {
 	return &envLoader{
-		options:   options,
 		envReader: &DefaultEnvReader{},
 	}
 }
@@ -90,7 +59,7 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 		if keyPrefix == "" {
 			currentKey = key
 		} else {
-			currentKey = fmt.Sprintf("%s%s%s", keyPrefix, el.options.EnvFieldDelimiter, key)
+			currentKey = fmt.Sprintf("%s%s%s", keyPrefix, "_", key)
 		}
 
 		envValue, exists := el.envReader.LookupEnv(currentKey)
