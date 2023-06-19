@@ -19,8 +19,9 @@ func TestLoad(t *testing.T) {
 		}
 
 		type ConfigModel struct {
-			WebsiteURL string
-			Database   DBConfig
+			WebsiteURL      string
+			FormulaConstant float64
+			Database        DBConfig
 		}
 
 		// Create mock EnvReader
@@ -28,6 +29,7 @@ func TestLoad(t *testing.T) {
 
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("https://example.com", true)
+		mockEnvReader.EXPECT().LookupEnv("FORMULA_CONSTANT").Return("3.14", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_NAME").Return("db", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_HOST").Return("localhost", true)
@@ -49,7 +51,8 @@ func TestLoad(t *testing.T) {
 		}
 
 		expected := &ConfigModel{
-			WebsiteURL: "https://example.com",
+			WebsiteURL:      "https://example.com",
+			FormulaConstant: 3.14,
 			Database: DBConfig{
 				Name:     "db",
 				Host:     "localhost",
@@ -63,7 +66,6 @@ func TestLoad(t *testing.T) {
 	})
 
 	t.Run("TestLoad_WithTags", func(t *testing.T) {
-
 		type DBConfig struct {
 			Name     string `env:"dbName"`
 			Host     string `env:"dbHost"`
@@ -73,8 +75,9 @@ func TestLoad(t *testing.T) {
 		}
 
 		type ConfigModel struct {
-			WebsiteURL string   `env:"websiteUrl"`
-			Database   DBConfig `env:"database"`
+			WebsiteURL      string   `env:"websiteUrl"`
+			FormulaConstant float64  `env:"formulaConstant"`
+			Database        DBConfig `env:"database"`
 		}
 
 		// Create mock EnvReader
@@ -82,6 +85,7 @@ func TestLoad(t *testing.T) {
 
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("websiteUrl").Return("https://example.com", true)
+		mockEnvReader.EXPECT().LookupEnv("formulaConstant").Return("3.14", true)
 		mockEnvReader.EXPECT().LookupEnv("database").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbName").Return("db", true)
 		mockEnvReader.EXPECT().LookupEnv("database_dbHost").Return("localhost", true)
@@ -103,7 +107,8 @@ func TestLoad(t *testing.T) {
 		}
 
 		expected := &ConfigModel{
-			WebsiteURL: "https://example.com",
+			WebsiteURL:      "https://example.com",
+			FormulaConstant: 3.14,
 			Database: DBConfig{
 				Name:     "db",
 				Host:     "localhost",

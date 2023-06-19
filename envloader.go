@@ -79,6 +79,15 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 				fieldValue.SetInt(int64(intValue))
 			}
 
+		case reflect.Float64:
+			if exists {
+				floatValue, err := strconv.ParseFloat(envValue, 64)
+				if err != nil {
+					return err
+				}
+				fieldValue.SetFloat(floatValue)
+			}
+
 		case reflect.Bool:
 			if exists {
 				boolValue, err := strconv.ParseBool(envValue)
