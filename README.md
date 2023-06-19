@@ -65,5 +65,57 @@ func main() {
 }
 ```
 
+## Custom Field Names
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/metinorak/envloader"
+)
+
+// An example nested struct
+type Config struct {
+    Database struct {
+        Host     string     `env:"Host"`
+        Port     int        `env:"Port"`
+        Username string     `env:"Username"`
+        Password string     `env:"Password"`
+        Name     string     `env:"Name"`
+        MaxIdle  int        `env:"MaxIdle"`
+    }  `env:"Database"`
+    Server struct {
+        Host string         `env:"Host"`
+        Port int            `env:"Port"`
+    } `env:"Server"`
+    WebsiteUrl string `env:"Website"`
+}
+
+func main() {
+    // Example environment variables
+    // Database_Host=localhost
+    // Database_Port=3306
+    // Database_Username=root
+    // Database_Password=secret
+    // Database_Name=example
+    // Database_MaxIdle=10
+    // Server_Host=localhost
+    // Server_Port=8080
+    // Website=http://localhost:8080
+
+    // Following lines will load environment variables into Config struct
+
+    var config Config
+    envLoader := envloader.New()
+
+    err := envLoader.Load(&config)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Printf("%+v\n", config)
+}
+```
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
