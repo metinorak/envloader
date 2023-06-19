@@ -22,6 +22,7 @@ import (
     "github.com/metinorak/envloader"
 )
 
+// An example nested struct
 type Config struct {
     Database struct {
         Host     string
@@ -74,6 +75,7 @@ import (
     "github.com/metinorak/envloader"
 )
 
+// An example nested struct
 type Config struct {
     Database struct {
         Host     string     `env:"Host"`
