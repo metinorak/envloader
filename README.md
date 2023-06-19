@@ -7,6 +7,7 @@ EnvLoader is a simple library that allows you to load environment variables into
 - Field names are converted to upper snake case by default
 - Custom field names can be defined with `env` tag
 - Default values can be defined with `default` tag
+- Supports slice and map types
 
 ## Installation
 ```bash
@@ -37,6 +38,8 @@ type Config struct {
         Port int    
     }
     WebsiteUrl string
+    FormulaConstants map[string]float64
+    Proxies []string
 }
 
 func main() {
@@ -50,6 +53,8 @@ func main() {
     // SERVER_HOST=localhost
     // SERVER_PORT=8080
     // WEBSITE_URL=http://localhost:8080
+    // FORMULA_CONSTANTS=pi:3.14,e:2.71
+    // PROXIES=example.com:8080,example2.com:8080
 
     // Following lines will load environment variables into Config struct
     // Field delimiter is underscore(_) by default
