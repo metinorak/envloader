@@ -19,7 +19,7 @@ type envLoader struct {
 	envReader EnvReader
 }
 
-// New creates a new instance of envLoader with the provided options
+// Creates a new instance of EnvLoader
 // Example:
 //
 //	loader := envloader.New()
