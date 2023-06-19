@@ -5,7 +5,8 @@ EnvLoader is a simple library that allows you to load environment variables into
 ## Features
 - Supports nested structs
 - Field names are converted to upper snake case by default
-- But you can specify custom field names with `env` tags
+- Custom field names can be defined with `env` tag
+- Default values can be defined with `default` tag
 
 ## Installation
 ```bash
@@ -65,7 +66,7 @@ func main() {
 }
 ```
 
-## Custom Field Names
+## With Tags
 ```go
 package main
 
@@ -77,8 +78,8 @@ import (
 // An example nested struct
 type Config struct {
     Database struct {
-        Host     string     `env:"Host"`
-        Port     int        `env:"Port"`
+        Host     string     `env:"Host" default:"localhost"`
+        Port     int        `env:"Port" default:"5000"`
         Username string     `env:"Username"`
         Password string     `env:"Password"`
         Name     string     `env:"Name"`
@@ -88,7 +89,8 @@ type Config struct {
         Host string         `env:"Host"`
         Port int            `env:"Port"`
     } `env:"Server"`
-    WebsiteUrl string `env:"Website"`
+    WebsiteUrl string       `env:"Website"`
+    FormulaConstant float64 `env:"FormulaConstant" default:"3.14"`
 }
 
 func main() {
@@ -102,6 +104,7 @@ func main() {
     // Server_Host=localhost
     // Server_Port=8080
     // Website=http://localhost:8080
+    // FormulaConstant=3.14
 
     // Following lines will load environment variables into Config struct
 

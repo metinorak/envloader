@@ -171,6 +171,60 @@ func TestLoad(t *testing.T) {
 
 		assert.Equal(t, expected, config)
 	})
+
+	t.Run("TestLoad_WithDefaultValues", func(t *testing.T) {
+		type DBConfig struct {
+			Name     string `env:"dbName" default:"db"`
+			Host     string `env:"dbHost" default:"localhost"`
+			Port     int    `env:"dbPort" default:"3306"`
+			Password string `env:"dbPassword" default:"password"`
+			MaxConns int    `env:"dbMaxConns" default:"15"`
+		}
+
+		type ConfigModel struct {
+			WebsiteURL      string   `env:"websiteUrl" default:"https://example.com"`
+			FormulaConstant float64  `env:"formulaConstant" default:"3.14"`
+			Database        DBConfig `env:"database"`
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("websiteUrl").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("formulaConstant").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database_dbName").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database_dbHost").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database_dbPort").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database_dbPassword").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("database_dbMaxConns").Return("", false)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		expected := &ConfigModel{
+			WebsiteURL:      "https://example.com",
+			FormulaConstant: 3.14,
+			Database: DBConfig{
+				Name:     "db",
+				Host:     "localhost",
+				Port:     3306,
+				Password: "password",
+				MaxConns: 15,
+			},
+		}
+
+		assert.Equal(t, expected, config)
+	})
 }
 
 func BenchmarkLoad(b *testing.B) {

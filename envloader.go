@@ -62,40 +62,40 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 			currentKey = fmt.Sprintf("%s%s%s", keyPrefix, "_", key)
 		}
 
-		envValue, exists := el.envReader.LookupEnv(currentKey)
+		envValue, envExists := el.envReader.LookupEnv(currentKey)
+
+		if !envExists && kindOfValue != reflect.Struct {
+			// if default tag exists, use it
+			if defaultTag, ok := field.Tag.Lookup("default"); ok {
+				envValue = defaultTag
+			}
+		}
 
 		switch kindOfValue {
 		case reflect.String:
-			if exists {
-				fieldValue.SetString(envValue)
-			}
+			fieldValue.SetString(envValue)
 
 		case reflect.Int:
-			if exists {
-				intValue, err := strconv.Atoi(envValue)
-				if err != nil {
-					return err
-				}
-				fieldValue.SetInt(int64(intValue))
+			intValue, err := strconv.Atoi(envValue)
+			if err != nil {
+				return err
 			}
+			fieldValue.SetInt(int64(intValue))
 
 		case reflect.Float64:
-			if exists {
-				floatValue, err := strconv.ParseFloat(envValue, 64)
-				if err != nil {
-					return err
-				}
-				fieldValue.SetFloat(floatValue)
+			floatValue, err := strconv.ParseFloat(envValue, 64)
+			if err != nil {
+				return err
 			}
+			fieldValue.SetFloat(floatValue)
 
 		case reflect.Bool:
-			if exists {
-				boolValue, err := strconv.ParseBool(envValue)
-				if err != nil {
-					return err
-				}
-				fieldValue.SetBool(boolValue)
+			boolValue, err := strconv.ParseBool(envValue)
+			if err != nil {
+				return err
 			}
+			fieldValue.SetBool(boolValue)
+
 		case reflect.Struct:
 			el.loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())
 		}
