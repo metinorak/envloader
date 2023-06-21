@@ -44,7 +44,7 @@ type Config struct {
 }
 
 func main() {
-    // Example environment variables
+    // Example environment variables for the above struct
     // DATABASE_HOST=localhost
     // DATABASE_PORT=3306
     // DATABASE_USERNAME=root
@@ -100,7 +100,7 @@ type Config struct {
 }
 
 func main() {
-    // Example environment variables
+    // Example environment variables for the above struct
     // Database_Host=localhost
     // Database_Port=3306
     // Database_Username=root
