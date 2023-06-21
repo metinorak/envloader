@@ -72,16 +72,6 @@ func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value)
 	return nil
 }
 
-func (el *envLoader) isFieldRequired(field reflect.StructField) bool {
-	if tag, ok := field.Tag.Lookup("required"); ok {
-		if tag == "true" {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 	value := reflect.ValueOf(model).Elem()
 	valueType := value.Type()

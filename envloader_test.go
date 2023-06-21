@@ -182,9 +182,10 @@ func TestLoad(t *testing.T) {
 		}
 
 		type ConfigModel struct {
-			WebsiteURL      string   `env:"websiteUrl" default:"https://example.com"`
-			FormulaConstant float64  `env:"formulaConstant" default:"3.14"`
-			Database        DBConfig `env:"database"`
+			WebsiteURL       string             `env:"websiteUrl" default:"https://example.com"`
+			FormulaConstants map[string]float64 `env:"formulaConstants" default:"pi:3.14,e:2.71828"`
+			UserRoles        []string           `env:"userRoles" default:"admin,editor,author"`
+			Database         DBConfig           `env:"database"`
 		}
 
 		// Create mock EnvReader
@@ -192,7 +193,8 @@ func TestLoad(t *testing.T) {
 
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("websiteUrl").Return("", false)
-		mockEnvReader.EXPECT().LookupEnv("formulaConstant").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("formulaConstants").Return("", false)
+		mockEnvReader.EXPECT().LookupEnv("userRoles").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbName").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbHost").Return("", false)
@@ -212,8 +214,12 @@ func TestLoad(t *testing.T) {
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
-			WebsiteURL:      "https://example.com",
-			FormulaConstant: 3.14,
+			WebsiteURL: "https://example.com",
+			FormulaConstants: map[string]float64{
+				"pi": 3.14,
+				"e":  2.71828,
+			},
+			UserRoles: []string{"admin", "editor", "author"},
 			Database: DBConfig{
 				Name:     "db",
 				Host:     "localhost",
