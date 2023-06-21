@@ -29,12 +29,6 @@ func New() EnvLoader {
 	}
 }
 
-func (el *envLoader) toSnakeUpperCase(str string) string {
-	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
-	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
-	return strings.ToUpper(snake)
-}
-
 func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value) error {
 	pairs := strings.Split(envValue, ",")
 
@@ -78,22 +72,23 @@ func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value)
 	return nil
 }
 
+func (el *envLoader) isFieldRequired(field reflect.StructField) bool {
+	if tag, ok := field.Tag.Lookup("required"); ok {
+		if tag == "true" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 	value := reflect.ValueOf(model).Elem()
 	valueType := value.Type()
 
 	for i := 0; i < valueType.NumField(); i++ {
-		field := valueType.Field(i)
-
-		var key string
-
-		// if the field has a tag, use it
-		if tag, ok := field.Tag.Lookup("env"); ok {
-			key = tag
-		} else {
-			// otherwise, use the field name
-			key = el.toSnakeUpperCase(field.Name)
-		}
+		field := structField(valueType.Field(i))
+		key := field.getEnvName()
 
 		kindOfValue := value.Field(i).Kind()
 		fieldValue := value.Field(i)
@@ -107,10 +102,13 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 
 		envValue, envExists := el.envReader.LookupEnv(currentKey)
 
+		if field.isRequired() && !envExists {
+			return fmt.Errorf("required field %s is not set", key)
+		}
+
 		if !envExists && kindOfValue != reflect.Struct {
-			// if default tag exists, use it
-			if defaultTag, ok := field.Tag.Lookup("default"); ok {
-				envValue = defaultTag
+			if defaultValue, ok := field.getDefaultValue(); ok {
+				envValue = defaultValue
 			}
 		}
 
@@ -169,9 +167,7 @@ func (el *envLoader) loadFromEnv(model any) error {
 	}
 
 	// find all env keys and set to model
-	el.loadFromEnvToModel("", model)
-
-	return nil
+	return el.loadFromEnvToModel("", model)
 }
 
 // Loads the environment variables into the provided model

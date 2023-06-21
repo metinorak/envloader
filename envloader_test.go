@@ -286,6 +286,29 @@ func TestLoad(t *testing.T) {
 
 		assert.Equal(t, expected, config)
 	})
+
+	t.Run("TestLoad_WithRequiredFields", func(t *testing.T) {
+		type ConfigModel struct {
+			WebsiteURL string `required:"true"`
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("", false)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.Error(t, err)
+	})
 }
 
 func BenchmarkLoad(b *testing.B) {
