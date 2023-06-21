@@ -315,6 +315,52 @@ func TestLoad(t *testing.T) {
 		err := loader.Load(config)
 		assert.Error(t, err)
 	})
+
+	t.Run("TestLoad_WhenEnvValueIsNotValid", func(t *testing.T) {
+		type ConfigModel struct {
+			FormulaConstant float64
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("FORMULA_CONSTANT").Return("3.14.15", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.Error(t, err)
+	})
+
+	t.Run("TestLoad_WhenMapValueIsNotValid", func(t *testing.T) {
+		type ConfigModel struct {
+			FormulaFactors map[string]float64
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("FORMULA_FACTORS").Return("pi:abc,e:2.71828,phi:1.618", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.Error(t, err)
+	})
 }
 
 func BenchmarkLoad(b *testing.B) {

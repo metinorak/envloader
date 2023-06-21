@@ -11,6 +11,15 @@ import (
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
+type ErrParseEnvValue struct {
+	Key   string
+	Value string
+}
+
+func (e *ErrParseEnvValue) Error() string {
+	return fmt.Sprintf("failed to parse environment variable %s: %s", e.Key, e.Value)
+}
+
 type EnvLoader interface {
 	Load(model any) error
 }
@@ -109,21 +118,30 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 		case reflect.Int:
 			intValue, err := strconv.Atoi(envValue)
 			if err != nil {
-				return err
+				return &ErrParseEnvValue{
+					Key:   currentKey,
+					Value: envValue,
+				}
 			}
 			fieldValue.SetInt(int64(intValue))
 
 		case reflect.Float64:
 			floatValue, err := strconv.ParseFloat(envValue, 64)
 			if err != nil {
-				return err
+				return &ErrParseEnvValue{
+					Key:   currentKey,
+					Value: envValue,
+				}
 			}
 			fieldValue.SetFloat(floatValue)
 
 		case reflect.Bool:
 			boolValue, err := strconv.ParseBool(envValue)
 			if err != nil {
-				return err
+				return &ErrParseEnvValue{
+					Key:   currentKey,
+					Value: envValue,
+				}
 			}
 			fieldValue.SetBool(boolValue)
 
@@ -134,7 +152,10 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 		case reflect.Map:
 			err := el.loadFromEnvToMap(envValue, fieldValue)
 			if err != nil {
-				return err
+				return &ErrParseEnvValue{
+					Key:   currentKey,
+					Value: envValue,
+				}
 			}
 
 		case reflect.Struct:
