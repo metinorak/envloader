@@ -8,6 +8,7 @@ EnvLoader is a simple library that allows you to load environment variables into
 - Custom field names can be defined with `env` tag
 - Default values can be defined with `default` tag
 - Supports slice and map types
+- Requirement check can be enabled with `required` tag like `required:"true"`. It is disabled by default.
 
 ## Installation
 ```bash
@@ -85,9 +86,9 @@ type Config struct {
     Database struct {
         Host     string     `env:"Host" default:"localhost"`
         Port     int        `env:"Port" default:"5000"`
-        Username string     `env:"Username"`
-        Password string     `env:"Password"`
-        Name     string     `env:"Name"`
+        Username string     `env:"Username" required:"true"`
+        Password string     `env:"Password" required:"true"`
+        Name     string     `env:"Name" default:"example" required:"true"`
         MaxIdle  int        `env:"MaxIdle"`
     }  `env:"Database"`
     Server struct {
