@@ -361,6 +361,32 @@ func TestLoad(t *testing.T) {
 		err := loader.Load(config)
 		assert.Error(t, err)
 	})
+
+	t.Run("TestLoad_WhenModelIsNotPointer", func(t *testing.T) {
+		type ConfigModel struct {
+			WebsiteURL string
+		}
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{}
+
+		// Call the Load method
+		config := ConfigModel{}
+
+		err := loader.Load(config)
+		assert.Error(t, err)
+	})
+
+	t.Run("TestLoad_WhenModelIsNotStruct", func(t *testing.T) {
+		// Create an instance of the EnvLoader
+		loader := envLoader{}
+
+		// Call the Load method
+		config := "test"
+
+		err := loader.Load(&config)
+		assert.Error(t, err)
+	})
 }
 
 func BenchmarkLoad(b *testing.B) {
