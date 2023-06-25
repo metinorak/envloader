@@ -9,13 +9,15 @@ EnvLoader is a simple library that allows you to load environment variables into
 - Default values can be defined with `default` tag
 - Supports slice and map types
 - Requirement check can be enabled with `required` tag like `required:"true"`. It is disabled by default.
+- Nested struct env variable names consist of parent struct name and field name. For example, `Database_Host` for `Database struct { Host string }`
+- Field delimiter is underscore(_) by default. It can be disabled using ``env:"-"``. In this case field names' keys will be used as they are.
 
 ## Installation
 ```bash
 go get github.com/metinorak/envloader
 ```
 
-## Usage
+## Basic Usage
 ```go
 package main
 
@@ -123,6 +125,56 @@ func main() {
     }
 
     fmt.Printf("%+v\n", config)
+}
+```
+
+## With Disabled Parent Struct Name and Fields
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/metinorak/envloader"
+)
+
+// An example nested struct
+type Config struct {
+    Database struct {
+        Host     string     `env:"-" default:"localhost"`
+        Port     int        `env:"-" default:"5000"`
+        Username string     `env:"Username" required:"true"`
+        Password string     `env:"Password" required:"true"`
+        Name     string     `env:"Name" default:"example" required:"true"`
+        MaxIdle  int        `env:"MaxIdle"`
+    }  `env:"-"`
+    Server struct {
+        Host string         `env:"Host"`
+        Port int            `env:"Port"`
+    } `env:"Server"`
+    WebsiteUrl string       `env:"Website"`
+    FormulaConstant float64 `env:"-"`
+}
+
+func main() {
+    // Example environment variables for the above struct
+    // Username=root
+    // Password=secret
+    // Name=example
+    // MaxIdle=10
+    // Server_Host=localhost
+    // Server_Port=8080
+    // Website=http://localhost:8080
+
+    // Following lines will load environment variables into Config struct
+
+    var config Config
+
+    envLoader := envloader.New()
+    
+    err := envLoader.Load(&config)
+    if err != nil {
+        panic(err)
+    }
 }
 ```
 

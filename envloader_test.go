@@ -30,7 +30,6 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("https://example.com", true)
 		mockEnvReader.EXPECT().LookupEnv("FORMULA_CONSTANT").Return("3.14", true)
-		mockEnvReader.EXPECT().LookupEnv("DATABASE").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_NAME").Return("db", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_HOST").Return("localhost", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_PORT").Return("3306", true)
@@ -86,7 +85,6 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("websiteUrl").Return("https://example.com", true)
 		mockEnvReader.EXPECT().LookupEnv("formulaConstant").Return("3.14", true)
-		mockEnvReader.EXPECT().LookupEnv("database").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbName").Return("db", true)
 		mockEnvReader.EXPECT().LookupEnv("database_dbHost").Return("localhost", true)
 		mockEnvReader.EXPECT().LookupEnv("database_dbPort").Return("3306", true)
@@ -140,7 +138,6 @@ func TestLoad(t *testing.T) {
 
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("WEBSITE1_URL").Return("https://example.com", true)
-		mockEnvReader.EXPECT().LookupEnv("DATABASE1").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE1_NAME1").Return("db", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE1_HOST1").Return("localhost", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE1_PORT1").Return("3306", true)
@@ -195,7 +192,6 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("websiteUrl").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("formulaConstants").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("userRoles").Return("", false)
-		mockEnvReader.EXPECT().LookupEnv("database").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbName").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbHost").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbPort").Return("", false)
@@ -386,6 +382,158 @@ func TestLoad(t *testing.T) {
 
 		err := loader.Load(&config)
 		assert.Error(t, err)
+	})
+
+	t.Run("TestLoad_WhenParentStructHasNoKey", func(t *testing.T) {
+		type DBConfig struct {
+			Name     string
+			Host     string
+			Port     int
+			Password string
+			MaxConns int
+		}
+
+		type ConfigModel struct {
+			WebsiteURL string
+			Database   DBConfig `env:"-"`
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("https://example.com", true)
+		mockEnvReader.EXPECT().LookupEnv("NAME").Return("db", true)
+		mockEnvReader.EXPECT().LookupEnv("HOST").Return("localhost", true)
+		mockEnvReader.EXPECT().LookupEnv("PORT").Return("3306", true)
+		mockEnvReader.EXPECT().LookupEnv("PASSWORD").Return("password", true)
+		mockEnvReader.EXPECT().LookupEnv("MAX_CONNS").Return("0", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		// Set expected config
+		expected := &ConfigModel{
+			WebsiteURL: "https://example.com",
+			Database: DBConfig{
+				Name:     "db",
+				Host:     "localhost",
+				Port:     3306,
+				Password: "password",
+				MaxConns: 0,
+			},
+		}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expected, config)
+	})
+
+	t.Run("TestLoad_WhenParentStructHasNoKeyAndChildStructHasKey", func(t *testing.T) {
+		type DBConnectionConfig struct {
+			Proxy string
+		}
+
+		type DBConfig struct {
+			Name       string
+			Host       string
+			Port       int
+			Password   string
+			MaxConns   int
+			Connection DBConnectionConfig
+		}
+
+		type ConfigModel struct {
+			WebsiteURL string
+			Database   DBConfig `env:"-"`
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set the expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("https://example.com", true)
+		mockEnvReader.EXPECT().LookupEnv("NAME").Return("db", true)
+		mockEnvReader.EXPECT().LookupEnv("HOST").Return("localhost", true)
+		mockEnvReader.EXPECT().LookupEnv("PORT").Return("3306", true)
+		mockEnvReader.EXPECT().LookupEnv("PASSWORD").Return("password", true)
+		mockEnvReader.EXPECT().LookupEnv("MAX_CONNS").Return("0", true)
+		mockEnvReader.EXPECT().LookupEnv("CONNECTION").Return("", false).AnyTimes()
+		mockEnvReader.EXPECT().LookupEnv("CONNECTION_PROXY").Return("https://proxy.example.com", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Set expected config
+		expected := &ConfigModel{
+			WebsiteURL: "https://example.com",
+			Database: DBConfig{
+				Name:     "db",
+				Host:     "localhost",
+				Port:     3306,
+				Password: "password",
+				MaxConns: 0,
+				Connection: DBConnectionConfig{
+					Proxy: "https://proxy.example.com",
+				},
+			},
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		assert.Equal(t, expected, config)
+	})
+
+	t.Run("TestLoad_WhenFieldsHaveNoKey", func(t *testing.T) {
+		type DBConfig struct {
+			Name     string
+			Host     string `env:"-"`
+			Port     int    `env:"-"`
+			Password string `env:"-"`
+			MaxConns int    `env:"-"`
+		}
+
+		type ConfigModel struct {
+			WebsiteURL string `env:"-"`
+			Database   DBConfig
+		}
+
+		// Create mock EnvReader
+		mockEnvReader := mocks.NewMockEnvReader(gomock.NewController(t))
+
+		// Set expected values for the mock
+		mockEnvReader.EXPECT().LookupEnv("DATABASE_NAME").Return("db", true)
+
+		// Create an instance of the EnvLoader
+		loader := envLoader{
+			envReader: mockEnvReader,
+		}
+
+		// Call the Load method
+		config := &ConfigModel{}
+
+		err := loader.Load(config)
+		assert.NoError(t, err)
+
+		expected := &ConfigModel{
+			Database: DBConfig{
+				Name: "db",
+			},
+		}
+
+		assert.Equal(t, expected, config)
 	})
 }
 

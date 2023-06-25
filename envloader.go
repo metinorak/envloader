@@ -92,11 +92,23 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 		kindOfValue := value.Field(i).Kind()
 		fieldValue := value.Field(i)
 
+		if key == "-" && kindOfValue != reflect.Struct {
+			continue
+		}
+
 		var currentKey string
-		if keyPrefix == "" {
+		if keyPrefix == "" || keyPrefix == "-" {
 			currentKey = key
 		} else {
 			currentKey = fmt.Sprintf("%s%s%s", keyPrefix, "_", key)
+		}
+
+		if kindOfValue == reflect.Struct {
+			err := el.loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())
+			if err != nil {
+				return err
+			}
+			continue
 		}
 
 		envValue, envExists := el.envReader.LookupEnv(currentKey)
@@ -109,6 +121,10 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 			if defaultValue, ok := field.getDefaultValue(); ok {
 				envValue = defaultValue
 			}
+		}
+
+		if envValue == "" {
+			continue
 		}
 
 		switch kindOfValue {
@@ -157,9 +173,6 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 					Value: envValue,
 				}
 			}
-
-		case reflect.Struct:
-			el.loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())
 		}
 	}
 
