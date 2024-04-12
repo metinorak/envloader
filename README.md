@@ -10,7 +10,7 @@ goenv is a simple library that allows you to load environment variables into a m
 - Supports slice and map types
 - Requirement check can be enabled with `required` tag like `required:"true"`. It is disabled by default.
 - Nested struct fields' variable names consist of parent struct name and field name. For example, `DATABASE_HOST` for `Database struct { Host string }`
-- Field delimiter is underscore(_) by default. It can be disabled using ``env:"-"``. In this case struct field names will not contain parent struct name. For example, `Host` for `Database struct { Host string }`
+- Field delimiter is underscore(_) by default. It can be disabled using ``env:"-"``. In this case struct field names will not contain parent struct name. For example, `HOST` for `Database struct { Host string }`
 
 ## Installation
 ```bash
