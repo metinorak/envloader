@@ -64,7 +64,7 @@ func main() {
 
     var config Config
 
-    err := Load(&config)
+    err := goenv.Load(&config)
     if err != nil {
         panic(err)
     }
@@ -117,7 +117,7 @@ func main() {
 
     var config Config
 
-    err := Load(&config)
+    err := goenv.Load(&config)
     if err != nil {
         panic(err)
     }
@@ -168,7 +168,7 @@ func main() {
     var config Config
 
     
-    err := Load(&config)
+    err := goenv.Load(&config)
     if err != nil {
         panic(err)
     }
