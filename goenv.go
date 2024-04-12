@@ -1,4 +1,4 @@
-package envloader
+package goenv
 
 import (
 	"fmt"
@@ -20,25 +20,9 @@ func (e *ErrParseEnvValue) Error() string {
 	return fmt.Sprintf("failed to parse environment variable %s: %s", e.Key, e.Value)
 }
 
-type EnvLoader interface {
-	Load(model any) error
-}
+var envReader EnvReader = &DefaultEnvReader{}
 
-type envLoader struct {
-	envReader EnvReader
-}
-
-// Creates a new instance of EnvLoader
-// Example:
-//
-//	loader := envloader.New()
-func New() EnvLoader {
-	return &envLoader{
-		envReader: &DefaultEnvReader{},
-	}
-}
-
-func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value) error {
+func loadFromEnvToMap(envValue string, fieldValue reflect.Value) error {
 	pairs := strings.Split(envValue, ",")
 
 	mapValue := reflect.MakeMap(fieldValue.Type())
@@ -81,7 +65,7 @@ func (el *envLoader) loadFromEnvToMap(envValue string, fieldValue reflect.Value)
 	return nil
 }
 
-func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
+func loadFromEnvToModel(keyPrefix string, model any) error {
 	value := reflect.ValueOf(model).Elem()
 	valueType := value.Type()
 
@@ -104,14 +88,14 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 		}
 
 		if kindOfValue == reflect.Struct {
-			err := el.loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())
+			err := loadFromEnvToModel(currentKey, fieldValue.Addr().Interface())
 			if err != nil {
 				return err
 			}
 			continue
 		}
 
-		envValue, envExists := el.envReader.LookupEnv(currentKey)
+		envValue, envExists := envReader.LookupEnv(currentKey)
 
 		if field.isRequired() && !envExists {
 			return fmt.Errorf("required field %s is not set", key)
@@ -166,7 +150,7 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 			fieldValue.Set(reflect.ValueOf(sliceValue))
 
 		case reflect.Map:
-			err := el.loadFromEnvToMap(envValue, fieldValue)
+			err := loadFromEnvToMap(envValue, fieldValue)
 			if err != nil {
 				return &ErrParseEnvValue{
 					Key:   currentKey,
@@ -180,7 +164,7 @@ func (el *envLoader) loadFromEnvToModel(keyPrefix string, model any) error {
 
 }
 
-func (el *envLoader) loadFromEnv(model any) error {
+func loadFromEnv(model any) error {
 	// check the model type
 	if reflect.TypeOf(model).Kind() != reflect.Ptr {
 		return fmt.Errorf("model must be a pointer")
@@ -191,12 +175,12 @@ func (el *envLoader) loadFromEnv(model any) error {
 	}
 
 	// find all env keys and set to model
-	return el.loadFromEnvToModel("", model)
+	return loadFromEnvToModel("", model)
 }
 
 // Loads the environment variables into the provided model
-func (el *envLoader) Load(model any) error {
-	err := el.loadFromEnv(model)
+func Load(model any) error {
+	err := loadFromEnv(model)
 	if err != nil {
 		return err
 	}

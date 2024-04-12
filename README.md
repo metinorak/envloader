@@ -1,6 +1,6 @@
-# EnvLoader
+# goenv
 ## Description
-EnvLoader is a simple library that allows you to load environment variables into a model struct. And it supports nested structs too!
+goenv is a simple library that allows you to load environment variables into a model struct. And it supports nested structs too!
 
 ## Features
 - Supports nested structs
@@ -14,7 +14,7 @@ EnvLoader is a simple library that allows you to load environment variables into
 
 ## Installation
 ```bash
-go get github.com/metinorak/envloader
+go get github.com/metinorak/goenv
 ```
 
 ## Basic Usage
@@ -23,7 +23,7 @@ package main
 
 import (
     "fmt"
-    "github.com/metinorak/envloader"
+    "github.com/metinorak/goenv"
 )
 
 // An example nested struct
@@ -63,9 +63,8 @@ func main() {
     // Field delimiter is underscore(_) by default
 
     var config Config
-    envLoader := envloader.New()
 
-    err := envLoader.Load(&config)
+    err := Load(&config)
     if err != nil {
         panic(err)
     }
@@ -80,7 +79,7 @@ package main
 
 import (
     "fmt"
-    "github.com/metinorak/envloader"
+    "github.com/metinorak/goenv"
 )
 
 // An example nested struct
@@ -117,9 +116,8 @@ func main() {
     // Following lines will load environment variables into Config struct
 
     var config Config
-    envLoader := envloader.New()
 
-    err := envLoader.Load(&config)
+    err := Load(&config)
     if err != nil {
         panic(err)
     }
@@ -134,7 +132,7 @@ package main
 
 import (
     "fmt"
-    "github.com/metinorak/envloader"
+    "github.com/metinorak/goenv"
 )
 
 // An example nested struct
@@ -169,9 +167,8 @@ func main() {
 
     var config Config
 
-    envLoader := envloader.New()
     
-    err := envLoader.Load(&config)
+    err := Load(&config)
     if err != nil {
         panic(err)
     }

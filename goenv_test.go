@@ -1,10 +1,10 @@
-package envloader
+package goenv
 
 import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/metinorak/envloader/mocks"
+	"github.com/metinorak/goenv/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,15 +36,13 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_PASSWORD").Return("password", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_MAX_CONNS").Return("", false)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		if err != nil {
 			t.Errorf("Load failed: %s", err)
 		}
@@ -91,15 +89,13 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("database_dbPassword").Return("password", true)
 		mockEnvReader.EXPECT().LookupEnv("database_dbMaxConns").Return("", false)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		if err != nil {
 			t.Errorf("Load failed: %s", err)
 		}
@@ -144,15 +140,13 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("DATABASE1_PASSWORD1").Return("password", true)
 		mockEnvReader.EXPECT().LookupEnv("DATABASE1_MAX_CONNS1").Return("15", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
@@ -198,15 +192,13 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("database_dbPassword").Return("", false)
 		mockEnvReader.EXPECT().LookupEnv("database_dbMaxConns").Return("", false)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
@@ -239,15 +231,13 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("PROXIES").Return("https://example.com,https://example2.com", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
@@ -268,15 +258,13 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("FORMULA_FACTORS").Return("pi:3.14,e:2.71828", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
@@ -300,15 +288,13 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("WEBSITE_URL").Return("", false)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.Error(t, err)
 	})
 
@@ -323,15 +309,13 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("FORMULA_CONSTANT").Return("3.14.15", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.Error(t, err)
 	})
 
@@ -346,15 +330,13 @@ func TestLoad(t *testing.T) {
 		// Set the expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("FORMULA_FACTORS").Return("pi:abc,e:2.71828,phi:1.618", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.Error(t, err)
 	})
 
@@ -363,24 +345,18 @@ func TestLoad(t *testing.T) {
 			WebsiteURL string
 		}
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{}
-
 		// Call the Load method
 		config := ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.Error(t, err)
 	})
 
 	t.Run("TestLoad_WhenModelIsNotStruct", func(t *testing.T) {
-		// Create an instance of the EnvLoader
-		loader := envLoader{}
-
 		// Call the Load method
 		config := "test"
 
-		err := loader.Load(&config)
+		err := Load(&config)
 		assert.Error(t, err)
 	})
 
@@ -409,10 +385,8 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("PASSWORD").Return("password", true)
 		mockEnvReader.EXPECT().LookupEnv("MAX_CONNS").Return("0", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
@@ -429,7 +403,7 @@ func TestLoad(t *testing.T) {
 			},
 		}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		assert.Equal(t, expected, config)
@@ -467,10 +441,8 @@ func TestLoad(t *testing.T) {
 		mockEnvReader.EXPECT().LookupEnv("CONNECTION").Return("", false).AnyTimes()
 		mockEnvReader.EXPECT().LookupEnv("CONNECTION_PROXY").Return("https://proxy.example.com", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Set expected config
 		expected := &ConfigModel{
@@ -490,7 +462,7 @@ func TestLoad(t *testing.T) {
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		assert.Equal(t, expected, config)
@@ -516,15 +488,13 @@ func TestLoad(t *testing.T) {
 		// Set expected values for the mock
 		mockEnvReader.EXPECT().LookupEnv("DATABASE_NAME").Return("db", true)
 
-		// Create an instance of the EnvLoader
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
+		// Replace the default EnvReader with the mock
+		envReader = mockEnvReader
 
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		assert.NoError(t, err)
 
 		expected := &ConfigModel{
@@ -564,15 +534,10 @@ func BenchmarkLoad(b *testing.B) {
 	mockEnvReader.EXPECT().LookupEnv("DATABASE_MAX_CONNS").Return("", false).AnyTimes()
 
 	for i := 0; i < b.N; i++ {
-		// Create an instance of the EnvLoader with default options
-		loader := envLoader{
-			envReader: mockEnvReader,
-		}
-
 		// Call the Load method
 		config := &ConfigModel{}
 
-		err := loader.Load(config)
+		err := Load(config)
 		if err != nil {
 			b.Errorf("Load failed: %s", err)
 		}
